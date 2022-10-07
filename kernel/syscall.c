@@ -148,7 +148,7 @@ char *names[] = {
     [SYS_link] "link",
     [SYS_mkdir] "mkdir",
     [SYS_close] "close",
-    [SYS_trace] "strace",
+    [SYS_trace] "trace",
     // [SYS_waitx]   "waitx",
     // [SYS_setpriority]   "setpriority",
 };
@@ -176,8 +176,6 @@ int nargs[] = {
     [SYS_mkdir] 1,
     [SYS_close] 1,
     [SYS_trace] 1,
-    // [SYS_waitx] 3,
-    // [SYS_setpriority] 1,
 };
 
 void syscall(void)
@@ -186,10 +184,13 @@ void syscall(void)
   struct proc *p = myproc();
 
   num = p->trapframe->a7;
+
   if (num > 0 && num < NELEM(syscalls) && syscalls[num])
   {
     int x = p->trapframe->a0;
+
     p->trapframe->a0 = syscalls[num]();
+
     if (((1 << num) & p->tracy) != 0)
     {
       if (nargs[num] == 0)
