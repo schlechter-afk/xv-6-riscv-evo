@@ -118,4 +118,19 @@ struct proc
   char name[16];               // Process name (debugging)
 
   int tracy;
+  int is_sigalarm;
+  int clockval;
+  int completed_clockval;
+  uint64 handler; // to store the handler function address
+
+  // WHY DO WE NEED A COPY OF A PRE-EXISTING TRAPFRAME ? 
+
+  // ANSWER :
+  // once the handler function has expired time interupt can still occur
+  // so we store the variables at that time(executing the handler function),
+  // so the variables we store to trapframe when we first expire 
+  // the handler function are overwritten so we need a new trapframe
+  // to store the registers when first handler function expires.
+
+  struct trapframe *cpy_trapframe;
 };
