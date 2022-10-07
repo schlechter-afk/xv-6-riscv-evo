@@ -5,24 +5,15 @@
 
 int main(int argc, char *argv[])
 {
-  int i;
-  char *newargv[64];
-
-  if (argc < 3)
+  if (argc <= 2 || trace(atoi(argv[1])) < 0)
   {
-    fprintf(2, "Invalid number of Arguments");
+    fprintf(2, "Invalid Command");
     exit(1);
   }
 
-  if (trace(atoi(argv[1])) < 0)
-  {
-    fprintf(2, "Incorrect Mask value");
-    exit(1);
-  }
-  for (i = 2; i < argc && i < MAXARG; i++)
-  {
-    newargv[i - 2] = argv[i];
-  }
-  exec(newargv[0], newargv);
+  exec(argv[2], &argv[2]);
+
+  // myproc()->tracy = 0;
+
   exit(0);
 }
