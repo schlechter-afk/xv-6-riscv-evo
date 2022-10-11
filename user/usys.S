@@ -120,3 +120,18 @@ sigalarm:
  li a7, SYS_sigalarm
  ecall
  ret
+.global set_priority
+set_priority:
+ li a7, SYS_set_priority
+ ecall
+ ret
+.global waitx
+waitx:
+ li a7, SYS_waitx
+ ecall
+ ret
+.global set_tickets
+set_tickets:
+ li a7, SYS_set_tickets
+ ecall
+ ret

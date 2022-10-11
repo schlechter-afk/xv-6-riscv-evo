@@ -9,6 +9,7 @@ int write(int, const void *, int);
 int read(int, void *, int);
 int close(int);
 int kill(int);
+int waitx(int *, int * /*wtime*/, int * /*rtime*/);
 int exec(const char *, char **);
 int open(const char *, int);
 int mknod(const char *, short, short);
@@ -25,6 +26,8 @@ int uptime(void);
 int trace(int mask);
 int sigalarm(int ticks, void (*handler)());
 int sigreturn(void);
+int set_priority(int, int);
+int set_tickets(int);
 
 // ulib.c
 int stat(const char *, struct stat *);

@@ -47,7 +47,7 @@ forktest(void)
 
   print("fork test\n");
   3a:	00000517          	auipc	a0,0x0
-  3e:	42e50513          	addi	a0,a0,1070 # 468 <sigalarm+0xa>
+  3e:	44650513          	addi	a0,a0,1094 # 480 <set_tickets+0xa>
   42:	00000097          	auipc	ra,0x0
   46:	fbe080e7          	jalr	-66(ra) # 0 <print>
 
@@ -71,7 +71,7 @@ forktest(void)
   if(n == N){
     print("fork claimed to work N times!\n");
   64:	00000517          	auipc	a0,0x0
-  68:	41450513          	addi	a0,a0,1044 # 478 <sigalarm+0x1a>
+  68:	42c50513          	addi	a0,a0,1068 # 490 <set_tickets+0x1a>
   6c:	00000097          	auipc	ra,0x0
   70:	f94080e7          	jalr	-108(ra) # 0 <print>
     exit(1);
@@ -113,7 +113,7 @@ forktest(void)
 
   print("fork test OK\n");
   b4:	00000517          	auipc	a0,0x0
-  b8:	41450513          	addi	a0,a0,1044 # 4c8 <sigalarm+0x6a>
+  b8:	42c50513          	addi	a0,a0,1068 # 4e0 <set_tickets+0x6a>
   bc:	00000097          	auipc	ra,0x0
   c0:	f44080e7          	jalr	-188(ra) # 0 <print>
 }
@@ -125,7 +125,7 @@ forktest(void)
   ce:	8082                	ret
       print("wait stopped early\n");
   d0:	00000517          	auipc	a0,0x0
-  d4:	3c850513          	addi	a0,a0,968 # 498 <sigalarm+0x3a>
+  d4:	3e050513          	addi	a0,a0,992 # 4b0 <set_tickets+0x3a>
   d8:	00000097          	auipc	ra,0x0
   dc:	f28080e7          	jalr	-216(ra) # 0 <print>
       exit(1);
@@ -134,7 +134,7 @@ forktest(void)
   e6:	2cc080e7          	jalr	716(ra) # 3ae <exit>
     print("wait got too many\n");
   ea:	00000517          	auipc	a0,0x0
-  ee:	3c650513          	addi	a0,a0,966 # 4b0 <sigalarm+0x52>
+  ee:	3de50513          	addi	a0,a0,990 # 4c8 <set_tickets+0x52>
   f2:	00000097          	auipc	ra,0x0
   f6:	f0e080e7          	jalr	-242(ra) # 0 <print>
     exit(1);
@@ -844,3 +844,33 @@ sigalarm:
  460:	00000073          	ecall
  ret
  464:	8082                	ret
+
+0000000000000466 <set_priority>:
+.global set_priority
+set_priority:
+ li a7, SYS_set_priority
+ 466:	48e5                	li	a7,25
+ ecall
+ 468:	00000073          	ecall
+ ret
+ 46c:	8082                	ret
+
+000000000000046e <waitx>:
+.global waitx
+waitx:
+ li a7, SYS_waitx
+ 46e:	48e9                	li	a7,26
+ ecall
+ 470:	00000073          	ecall
+ ret
+ 474:	8082                	ret
+
+0000000000000476 <set_tickets>:
+.global set_tickets
+set_tickets:
+ li a7, SYS_set_tickets
+ 476:	48ed                	li	a7,27
+ ecall
+ 478:	00000073          	ecall
+ ret
+ 47c:	8082                	ret
