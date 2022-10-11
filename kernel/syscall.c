@@ -7,6 +7,13 @@
 #include "syscall.h"
 #include "defs.h"
 
+#define L0 0
+#define L1 1
+#define L2 2
+#define L3 3
+#define L4 4
+#define L5 5
+
 // Fetch the uint64 at addr from the current process.
 int fetchaddr(uint64 addr, uint64 *ip)
 {
@@ -100,6 +107,9 @@ extern uint64 sys_close(void);
 extern uint64 sys_trace(void);
 extern uint64 sys_sigalarm(void);
 extern uint64 sys_sigreturn(void);
+extern uint64 sys_set_priority(void);
+extern uint64 sys_waitx(void);
+extern uint64 sys_set_tickets(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -128,6 +138,9 @@ static uint64 (*syscalls[])(void) = {
     [SYS_trace] sys_trace,
     [SYS_sigalarm] sys_sigalarm,
     [SYS_sigreturn] sys_sigreturn,
+    [SYS_set_priority] sys_set_priority,
+    [SYS_waitx] sys_waitx,
+    [SYS_set_tickets] sys_set_tickets,
 };
 
 char *names[] = {
@@ -153,13 +166,15 @@ char *names[] = {
     [SYS_mkdir] "mkdir",
     [SYS_close] "close",
     [SYS_trace] "trace",
-    // [SYS_sigalarm] "sigalarm",
-    // [SYS_sigreturn] "sigreturn",
-    // [SYS_waitx]   "waitx",
-    // [SYS_setpriority]   "setpriority",
+    [SYS_sigalarm] "sigalarm",
+    [SYS_sigreturn] "sigreturn",
+    [SYS_waitx] "waitx",
+    [SYS_set_priority] "set_priority",
+    [SYS_waitx] "waitx",
+    [SYS_set_tickets] "set_tickets",
 };
 
-int nargs[] = {
+int args_num[] = {
     [SYS_fork] 0,
     [SYS_exit] 1,
     [SYS_wait] 1,
@@ -182,56 +197,51 @@ int nargs[] = {
     [SYS_mkdir] 1,
     [SYS_close] 1,
     [SYS_trace] 1,
-    // [SYS_sigalarm] 0,
-    // [SYS_sigreturn] 0,
+    [SYS_sigalarm] 0,
+    [SYS_sigreturn] 0,
+    [SYS_set_priority] 1,
+    [SYS_waitx] 3,
+    [SYS_set_tickets] 1,
 };
 
 void syscall(void)
 {
-  int num;
   struct proc *p = myproc();
 
-  num = p->trapframe->a7;
+  int num = p->trapframe->a7;
 
   if (num > 0 && num < NELEM(syscalls) && syscalls[num])
   {
-    int x = p->trapframe->a0;
-
     p->trapframe->a0 = syscalls[num]();
 
-    if (((1 << num) & p->tracy) != 0)
+    if ((1 << p->trapframe->a7) & p->bitmask)
     {
-      if (nargs[num] == 0)
+      printf("%d: syscall %s ", p->pid, names[num]);
+      switch (args_num[num])
       {
-        printf("%d: syscall %s (%d) -> %d\n", p->pid, names[num], x, p->trapframe->a0);
-      }
-      else if (nargs[num] == 1)
-      {
-        printf("%d: syscall %s (%d) -> %d\n", p->pid, names[num], x, p->trapframe->a0);
-      }
-      else if (nargs[num] == 2)
-      {
-        printf("%d: syscall %s (%d %d) -> %d\n", p->pid, names[num], x, p->trapframe->a1, p->trapframe->a0);
-      }
-      else if (nargs[num] == 3)
-      {
-        printf("%d: syscall %s (%d %d %d) -> %d\n", p->pid, names[num], x, p->trapframe->a1, p->trapframe->a2, p->trapframe->a0);
-      }
-      else if (nargs[num] == 4)
-      {
-        printf("%d: syscall %s (%d %d %d %d) -> %d\n", p->pid, names[num], x, p->trapframe->a1, p->trapframe->a2, p->trapframe->a3, p->trapframe->a0);
-      }
-      else if (nargs[num] == 5)
-      {
-        printf("%d: syscall %s (%d %d %d %d %d) -> %d\n", p->pid, names[num], x, p->trapframe->a1, p->trapframe->a2, p->trapframe->a3, p->trapframe->a4, p->trapframe->a0);
-      }
-      else
-      {
-        printf("%d: syscall %s (%d %d %d %d %d %d) -> %d\n", p->pid, names[num], x, p->trapframe->a1, p->trapframe->a2, p->trapframe->a3, p->trapframe->a4, p->trapframe->a5, p->trapframe->a0);
+      case L0:
+        printf("(%d) -> %d\n", p->trapframe->a0, p->trapframe->a0);
+        break;
+      case L1:
+        printf("(%d) -> %d\n", p->trapframe->a0, p->trapframe->a0);
+        break;
+      case L2:
+        printf("(%d %d) -> %d\n", p->trapframe->a0, p->trapframe->a1, p->trapframe->a0);
+        break;
+      case L3:
+        printf("(%d %d %d) -> %d\n", p->trapframe->a0, p->trapframe->a1, p->trapframe->a2, p->trapframe->a0);
+        break;
+      case L4:
+        printf("(%d %d %d %d) -> %d\n", p->trapframe->a0, p->trapframe->a1, p->trapframe->a2, p->trapframe->a3, p->trapframe->a0);
+        break;
+      case L5:
+        printf("(%d %d %d %d %d) -> %d\n", p->trapframe->a0, p->trapframe->a1, p->trapframe->a2, p->trapframe->a3, p->trapframe->a4, p->trapframe->a0);
+        break;
+      default:
+        printf("(%d %d %d %d %d %d) -> %d\n", p->trapframe->a0, p->trapframe->a1, p->trapframe->a2, p->trapframe->a3, p->trapframe->a4, p->trapframe->a5, p->trapframe->a0);
+        break;
       }
     }
-
-    // p->tracy=0;
   }
   else
   {

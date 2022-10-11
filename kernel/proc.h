@@ -104,6 +104,8 @@ struct proc
   int xstate;           // Exit status to be returned to parent's wait
   int pid;              // Process ID
 
+  int last_ticks_scheduled;
+
   // wait_lock must be held when using this:
   struct proc *parent; // Parent process
 
@@ -117,20 +119,47 @@ struct proc
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 
-  int tracy;
+  uint last_run;
+  uint last_sleep;
+
+  int bitmask;
   int is_sigalarm;
   int clockval;
   int completed_clockval;
   uint64 handler; // to store the handler function address
 
-  // WHY DO WE NEED A COPY OF A PRE-EXISTING TRAPFRAME ? 
+  uint64 tickets;
+
+  // WHY DO WE NEED A COPY OF A PRE-EXISTING TRAPFRAME ?
 
   // ANSWER :
   // once the handler function has expired time interupt can still occur
   // so we store the variables at that time(executing the handler function),
-  // so the variables we store to trapframe when we first expire 
+  // so the variables we store to trapframe when we first expire
   // the handler function are overwritten so we need a new trapframe
   // to store the registers when first handler function expires.
 
   struct trapframe *cpy_trapframe;
+
+  /// TO BE CHANGED
+
+  // #ifdef PBS
+  // #endif
+  int stat_priority;
+  int niceness;
+
+  uint64 init_time;
+  uint64 run_time;
+  uint64 end_time;
+  uint64 sleep_time;
+  int sched_ct;
+
+#ifdef MLFQ
+  uint64 cur_wait_time;
+  uint64 inqueue;
+  int queue_pos;
+  int ticks_used;
+  int queue_time[5];
+  int entered_queue;
+#endif
 };

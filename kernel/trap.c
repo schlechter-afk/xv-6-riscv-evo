@@ -27,6 +27,41 @@ void trapinithart(void)
   w_stvec((uint64)kernelvec);
 }
 
+int cowfault(pagetable_t pagetable, uint64 va)
+{
+  if (va >= MAXVA)
+  {
+    return -1;
+  }
+
+  pte_t *pte = walk(pagetable, va, 0);
+  if (0 == pte)
+  {
+    return -1;
+  }
+
+  if (0 == (*pte & PTE_U) || 0 == (*pte & PTE_V))
+  {
+    return -1;
+  }
+
+  uint64 pa1 = PTE2PA(*pte);
+  uint64 pa2 = (uint64)kalloc();
+  if (0 == pa2)
+  {
+    printf("cow kalloc failed\n");
+    return -1;
+  }
+
+  memmove((void *)pa2, (void *)pa1, PGSIZE);
+
+  kfree((void *)pa1);
+
+  *pte = PA2PTE(pa2) | PTE_V | PTE_U | PTE_R | PTE_W | PTE_X;
+
+  return 0;
+}
+
 //
 // handle an interrupt, exception, or system call from user space.
 // called from trampoline.S
@@ -68,6 +103,13 @@ void usertrap(void)
   {
     // ok
   }
+  else if (0xf == r_scause())
+  {
+    if (0 > cowfault(p->pagetable, r_stval()))
+    {
+      p->killed = 1;
+    }
+  }
   else
   {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
@@ -92,7 +134,9 @@ void usertrap(void)
         p->trapframe->epc = p->handler;
       }
     }
+#ifndef FCFS
     yield();
+#endif
   }
   usertrapret();
 }
@@ -167,7 +211,9 @@ void kerneltrap()
   // give up the CPU if this is a timer interrupt.
   if (which_dev == 2 && p != 0 && p->state == RUNNING)
   {
+#ifndef FCFS
     yield();
+#endif
   }
 
   // the yield() may have caused some traps to occur,
