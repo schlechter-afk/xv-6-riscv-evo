@@ -1,70 +1,59 @@
 
-user/_rm:     file format elf64-littleriscv
+user/_set_priority:     file format elf64-littleriscv
 
 
 Disassembly of section .text:
 
 0000000000000000 <main>:
-#include "kernel/stat.h"
+#include "kernel/types.h"
 #include "user/user.h"
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-   0:	7179                	addi	sp,sp,-48
-   2:	f406                	sd	ra,40(sp)
-   4:	f022                	sd	s0,32(sp)
-   6:	ec26                	sd	s1,24(sp)
-   8:	e84a                	sd	s2,16(sp)
-   a:	e44e                	sd	s3,8(sp)
-   c:	1800                	addi	s0,sp,48
-  int i;
-
-  if(argc < 2){
-   e:	4785                	li	a5,1
-  10:	02a7d763          	bge	a5,a0,3e <main+0x3e>
-  14:	00858493          	addi	s1,a1,8
-  18:	ffe5091b          	addiw	s2,a0,-2
-  1c:	1902                	slli	s2,s2,0x20
-  1e:	02095913          	srli	s2,s2,0x20
-  22:	090e                	slli	s2,s2,0x3
-  24:	05c1                	addi	a1,a1,16
-  26:	992e                	add	s2,s2,a1
-    fprintf(2, "Usage: rm files...\n");
+   0:	1101                	addi	sp,sp,-32
+   2:	ec06                	sd	ra,24(sp)
+   4:	e822                	sd	s0,16(sp)
+   6:	e426                	sd	s1,8(sp)
+   8:	e04a                	sd	s2,0(sp)
+   a:	1000                	addi	s0,sp,32
+  if (argc < 3 || atoi(argv[1]) < 0 || atoi(argv[2]) < 0)
+   c:	4789                	li	a5,2
+   e:	00a7da63          	bge	a5,a0,22 <main+0x22>
+  12:	84ae                	mv	s1,a1
+  14:	6588                	ld	a0,8(a1)
+  16:	00000097          	auipc	ra,0x0
+  1a:	1f2080e7          	jalr	498(ra) # 208 <atoi>
+  1e:	02055063          	bgez	a0,3e <main+0x3e>
+  {
+    fprintf(2, "Invalid System Call\n");
+  22:	00001597          	auipc	a1,0x1
+  26:	83e58593          	addi	a1,a1,-1986 # 860 <malloc+0xf2>
+  2a:	4509                	li	a0,2
+  2c:	00000097          	auipc	ra,0x0
+  30:	656080e7          	jalr	1622(ra) # 682 <fprintf>
     exit(1);
+  34:	4505                	li	a0,1
+  36:	00000097          	auipc	ra,0x0
+  3a:	2d2080e7          	jalr	722(ra) # 308 <exit>
+  if (argc < 3 || atoi(argv[1]) < 0 || atoi(argv[2]) < 0)
+  3e:	6888                	ld	a0,16(s1)
+  40:	00000097          	auipc	ra,0x0
+  44:	1c8080e7          	jalr	456(ra) # 208 <atoi>
+  48:	fc054de3          	bltz	a0,22 <main+0x22>
   }
 
-  for(i = 1; i < argc; i++){
-    if(unlink(argv[i]) < 0){
-  28:	6088                	ld	a0,0(s1)
-  2a:	00000097          	auipc	ra,0x0
-  2e:	32e080e7          	jalr	814(ra) # 358 <unlink>
-  32:	02054463          	bltz	a0,5a <main+0x5a>
-  for(i = 1; i < argc; i++){
-  36:	04a1                	addi	s1,s1,8
-  38:	ff2498e3          	bne	s1,s2,28 <main+0x28>
-  3c:	a80d                	j	6e <main+0x6e>
-    fprintf(2, "Usage: rm files...\n");
-  3e:	00001597          	auipc	a1,0x1
-  42:	82258593          	addi	a1,a1,-2014 # 860 <malloc+0xf2>
-  46:	4509                	li	a0,2
-  48:	00000097          	auipc	ra,0x0
-  4c:	63a080e7          	jalr	1594(ra) # 682 <fprintf>
-    exit(1);
-  50:	4505                	li	a0,1
-  52:	00000097          	auipc	ra,0x0
-  56:	2b6080e7          	jalr	694(ra) # 308 <exit>
-      fprintf(2, "rm: %s failed to delete\n", argv[i]);
-  5a:	6090                	ld	a2,0(s1)
-  5c:	00001597          	auipc	a1,0x1
-  60:	81c58593          	addi	a1,a1,-2020 # 878 <malloc+0x10a>
-  64:	4509                	li	a0,2
+  set_priority(atoi(argv[1]), atoi(argv[2]));
+  4c:	6488                	ld	a0,8(s1)
+  4e:	00000097          	auipc	ra,0x0
+  52:	1ba080e7          	jalr	442(ra) # 208 <atoi>
+  56:	892a                	mv	s2,a0
+  58:	6888                	ld	a0,16(s1)
+  5a:	00000097          	auipc	ra,0x0
+  5e:	1ae080e7          	jalr	430(ra) # 208 <atoi>
+  62:	85aa                	mv	a1,a0
+  64:	854a                	mv	a0,s2
   66:	00000097          	auipc	ra,0x0
-  6a:	61c080e7          	jalr	1564(ra) # 682 <fprintf>
-      break;
-    }
-  }
-
+  6a:	35a080e7          	jalr	858(ra) # 3c0 <set_priority>
   exit(0);
   6e:	4501                	li	a0,0
   70:	00000097          	auipc	ra,0x0
@@ -846,7 +835,7 @@ printint(int fd, int xx, int base, int sgn)
     buf[i++] = digits[x % base];
  41a:	2601                	sext.w	a2,a2
  41c:	00000517          	auipc	a0,0x0
- 420:	48450513          	addi	a0,a0,1156 # 8a0 <digits>
+ 420:	46450513          	addi	a0,a0,1124 # 880 <digits>
  424:	883a                	mv	a6,a4
  426:	2705                	addiw	a4,a4,1
  428:	02c5f7bb          	remuw	a5,a1,a2
@@ -956,7 +945,7 @@ vprintf(int fd, const char *fmt, va_list ap)
  4e4:	07000d93          	li	s11,112
     putc(fd, digits[x >> (sizeof(uint64) * 8 - 4)]);
  4e8:	00000b97          	auipc	s7,0x0
- 4ec:	3b8b8b93          	addi	s7,s7,952 # 8a0 <digits>
+ 4ec:	398b8b93          	addi	s7,s7,920 # 880 <digits>
  4f0:	a839                	j	50e <vprintf+0x6a>
         putc(fd, c);
  4f2:	85ca                	mv	a1,s2
@@ -1110,7 +1099,7 @@ vprintf(int fd, const char *fmt, va_list ap)
  626:	bdf9                	j	504 <vprintf+0x60>
           s = "(null)";
  628:	00000917          	auipc	s2,0x0
- 62c:	27090913          	addi	s2,s2,624 # 898 <malloc+0x12a>
+ 62c:	25090913          	addi	s2,s2,592 # 878 <malloc+0x10a>
         while(*s != 0){
  630:	02800593          	li	a1,40
  634:	bff1                	j	610 <vprintf+0x16c>
